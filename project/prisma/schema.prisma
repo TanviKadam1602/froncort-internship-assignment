@@ -13,8 +13,10 @@ generator client {
 
 enum OrgRole {
   ORG_ADMIN
+  SUPPORT_MANAGER
   SUPPORT_AGENT
   REVIEWER_APPROVER
+  USER
 }
 
 enum TicketStatus {
@@ -176,6 +178,7 @@ model Ticket {
   assigneeId   String?            @map("assignee_id") @db.Uuid
   title        String             @db.VarChar(255)
   description  String             @db.Text
+  category     String?            @default("GENERAL") @db.VarChar(100)
   status       TicketStatus       @default(OPEN)
   priority     TicketPriority     @default(MEDIUM)
   dueDate      DateTime?          @map("due_date") @db.Timestamptz
