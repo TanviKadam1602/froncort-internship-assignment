@@ -3,7 +3,7 @@ import { Card, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Sparkles } from 'lucide-react';
 
-export const AIDigestPlaceholderPage: React.FC = () => {
+export default function AIDigestPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -20,11 +20,9 @@ export const AIDigestPlaceholderPage: React.FC = () => {
       <Card>
         <CardHeader title="AI Digest Module Placeholder" subtitle="API Route /api/v1/ai connected" />
         <p className="text-xs text-slate-400 leading-relaxed">
-          This route is mounted to the workspace navigation. Configured with pluggable AI providers (OpenAI / Gemini) and BullMQ background job monitoring.
+          This route is mounted to the Next.js App Router. Configured with pluggable AI providers (OpenAI / Gemini) and BullMQ background job monitoring.
         </p>
       </Card>
     </div>
   );
-};
-
-export default AIDigestPlaceholderPage;
+}

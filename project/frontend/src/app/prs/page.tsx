@@ -3,7 +3,7 @@ import { Card, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { GitPullRequest } from 'lucide-react';
 
-export const PRsPlaceholderPage: React.FC = () => {
+export default function PRsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -20,11 +20,9 @@ export const PRsPlaceholderPage: React.FC = () => {
       <Card>
         <CardHeader title="Review Console Module Placeholder" subtitle="API Route /api/v1/prs connected" />
         <p className="text-xs text-slate-400 leading-relaxed">
-          This route is mounted to the workspace navigation. Reusable services, version snapshot handlers, and diff builders are initialized.
+          This route is mounted to the Next.js App Router. Reusable services, version snapshot handlers, and diff builders are initialized.
         </p>
       </Card>
     </div>
   );
-};
-
-export default PRsPlaceholderPage;
+}

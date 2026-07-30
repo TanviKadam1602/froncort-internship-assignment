@@ -15,4 +15,5 @@ declare module 'lucide-react' {
   export const X: React.ComponentType<any>;
   export const ChevronDown: React.ComponentType<any>;
   export const ArrowUpRight: React.ComponentType<any>;
+  export const AlertTriangle: React.ComponentType<any>;
 }

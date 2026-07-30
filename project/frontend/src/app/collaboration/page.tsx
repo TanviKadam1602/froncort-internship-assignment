@@ -3,7 +3,7 @@ import { Card, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Network } from 'lucide-react';
 
-export const CollaborationPlaceholderPage: React.FC = () => {
+export default function CollaborationPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -20,11 +20,9 @@ export const CollaborationPlaceholderPage: React.FC = () => {
       <Card>
         <CardHeader title="Collaboration Module Placeholder" subtitle="API Routes /api/v1/collaboration & /api/v1/cross-org connected" />
         <p className="text-xs text-slate-400 leading-relaxed">
-          This route is mounted to the workspace navigation. Partner connections and permission-bound resource sharing services are ready.
+          This route is mounted to the Next.js App Router. Partner connections and permission-bound resource sharing services are ready.
         </p>
       </Card>
     </div>
   );
-};
-
-export default CollaborationPlaceholderPage;
+}

@@ -3,7 +3,7 @@ import { Card, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Bell } from 'lucide-react';
 
-export const NotificationsPlaceholderPage: React.FC = () => {
+export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -20,11 +20,9 @@ export const NotificationsPlaceholderPage: React.FC = () => {
       <Card>
         <CardHeader title="Notifications Module Placeholder" subtitle="API Route /api/v1/notifications connected" />
         <p className="text-xs text-slate-400 leading-relaxed">
-          This route is mounted to the workspace navigation. Unread count tracking, preferences, and delivery queues are initialized.
+          This route is mounted to the Next.js App Router. Unread count tracking, preferences, and delivery queues are initialized.
         </p>
       </Card>
     </div>
   );
-};
-
-export default NotificationsPlaceholderPage;
+}

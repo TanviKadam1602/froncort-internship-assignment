@@ -8,14 +8,16 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-let accessToken: string | null = localStorage.getItem('accessToken');
+let accessToken: string | null = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
-  if (token) {
-    localStorage.setItem('accessToken', token);
-  } else {
-    localStorage.removeItem('accessToken');
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('accessToken', token);
+    } else {
+      localStorage.removeItem('accessToken');
+    }
   }
 };
 
@@ -48,7 +50,9 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshErr) {
         setAccessToken(null);
-        window.dispatchEvent(new Event('unauthorized'));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('unauthorized'));
+        }
       }
     }
     return Promise.reject(error);

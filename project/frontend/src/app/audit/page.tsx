@@ -3,7 +3,7 @@ import { Card, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { ShieldCheck } from 'lucide-react';
 
-export const AuditPlaceholderPage: React.FC = () => {
+export default function AuditPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
@@ -20,11 +20,9 @@ export const AuditPlaceholderPage: React.FC = () => {
       <Card>
         <CardHeader title="Audit System Module Placeholder" subtitle="API Route /api/v1/audit connected" />
         <p className="text-xs text-slate-400 leading-relaxed">
-          This route is mounted to the workspace navigation. Cryptographic hash chain verification and CSV export services are ready.
+          This route is mounted to the Next.js App Router. Cryptographic hash chain verification and CSV export services are ready.
         </p>
       </Card>
     </div>
   );
-};
-
-export default AuditPlaceholderPage;
+}

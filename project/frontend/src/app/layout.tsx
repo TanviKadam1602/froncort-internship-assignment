@@ -1,4 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { AppProvider } from '../providers/AppProvider';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -20,7 +24,7 @@ import {
   X,
   ChevronDown,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import '../styles/globals.css';
 
 const SidebarLink: React.FC<{ to: string; icon: React.ReactNode; label: string; active: boolean }> = ({
   to,
@@ -29,7 +33,7 @@ const SidebarLink: React.FC<{ to: string; icon: React.ReactNode; label: string; 
   active,
 }) => (
   <Link
-    to={to}
+    href={to}
     className={`flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
       active
         ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-500/30 shadow-sm'
@@ -41,10 +45,10 @@ const SidebarLink: React.FC<{ to: string; icon: React.ReactNode; label: string; 
   </Link>
 );
 
-export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, activeOrg, memberships, switchOrg, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const location = useLocation();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
 
@@ -77,7 +81,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
             </div>
             <div>
               <h1 className="text-base font-bold text-slate-100 leading-tight">Unified Workspace</h1>
-              <p className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Enterprise Platform</p>
+              <p className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Enterprise Next.js 15</p>
             </div>
           </div>
 
@@ -125,36 +129,36 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
           {/* Navigation Links */}
           <nav className="space-y-1">
-            <SidebarLink to="/" icon={<LayoutDashboard />} label="Dashboard" active={location.pathname === '/'} />
+            <SidebarLink to="/" icon={<LayoutDashboard />} label="Dashboard" active={pathname === '/'} />
             <SidebarLink
               to="/tickets"
               icon={<Ticket />}
               label="Support Hub"
-              active={location.pathname.startsWith('/tickets')}
+              active={pathname.startsWith('/tickets')}
             />
             <SidebarLink
               to="/prs"
               icon={<GitPullRequest />}
               label="Review Console"
-              active={location.pathname.startsWith('/prs')}
+              active={pathname.startsWith('/prs')}
             />
             <SidebarLink
               to="/collaboration"
               icon={<Network />}
               label="Cross-Org Partner"
-              active={location.pathname.startsWith('/collaboration')}
+              active={pathname.startsWith('/collaboration')}
             />
             <SidebarLink
               to="/audit"
               icon={<ShieldCheck />}
               label="Audit Logs"
-              active={location.pathname.startsWith('/audit')}
+              active={pathname.startsWith('/audit')}
             />
             <SidebarLink
               to="/ai-digest"
               icon={<Sparkles />}
               label="AI Progress Digest"
-              active={location.pathname.startsWith('/ai-digest')}
+              active={pathname.startsWith('/ai-digest')}
             />
           </nav>
         </div>
@@ -203,7 +207,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
           <div className="flex items-center space-x-4">
             <Link
-              to="/notifications"
+              href="/notifications"
               className="relative p-2 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition-all"
             >
               <Bell className="w-5 h-5" />
@@ -217,4 +221,20 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       </main>
     </div>
   );
-};
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" data-theme="dark">
+      <head>
+        <title>Unified Workspace Platform — Next.js 15</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </head>
+      <body>
+        <AppProvider>
+          <DashboardShell>{children}</DashboardShell>
+        </AppProvider>
+      </body>
+    </html>
+  );
+}

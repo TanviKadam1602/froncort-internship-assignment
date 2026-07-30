@@ -1,23 +1,25 @@
+'use client';
+
 import React from 'react';
+import Link from 'next/link';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Ticket, GitPullRequest, Network, ShieldCheck, Sparkles, ArrowUpRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
-export const DashboardPage: React.FC = () => {
+export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Workspace Dashboard Overview</h1>
+          <h1 className="text-2xl font-bold text-slate-100">Next.js 15 App Router Dashboard</h1>
           <p className="text-xs text-slate-400 mt-1">
             Real-time multi-tenant insights across Support Hub, Review Console, & Cross-Org Collaboration
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <Link to="/ai-digest">
+          <Link href="/ai-digest">
             <Button variant="primary" size="sm" className="space-x-2">
               <Sparkles className="w-4 h-4" />
               <span>Generate AI Progress Digest</span>
@@ -40,7 +42,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div className="mt-4 flex items-center justify-between text-xs">
             <span className="text-emerald-400 font-medium">+12% this week</span>
-            <Link to="/tickets" className="text-indigo-400 hover:underline flex items-center">
+            <Link href="/tickets" className="text-indigo-400 hover:underline flex items-center">
               View All <ArrowUpRight className="w-3 h-3 ml-0.5" />
             </Link>
           </div>
@@ -58,7 +60,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div className="mt-4 flex items-center justify-between text-xs">
             <span className="text-slate-400">N-Approval active</span>
-            <Link to="/prs" className="text-purple-400 hover:underline flex items-center">
+            <Link href="/prs" className="text-purple-400 hover:underline flex items-center">
               Review PRs <ArrowUpRight className="w-3 h-3 ml-0.5" />
             </Link>
           </div>
@@ -76,7 +78,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div className="mt-4 flex items-center justify-between text-xs">
             <Badge variant="success">Handshake Active</Badge>
-            <Link to="/collaboration" className="text-blue-400 hover:underline flex items-center">
+            <Link href="/collaboration" className="text-blue-400 hover:underline flex items-center">
               Partners <ArrowUpRight className="w-3 h-3 ml-0.5" />
             </Link>
           </div>
@@ -94,7 +96,7 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div className="mt-4 flex items-center justify-between text-xs">
             <span className="text-slate-400">SHA-256 Hash Chain</span>
-            <Link to="/audit" className="text-emerald-400 hover:underline flex items-center">
+            <Link href="/audit" className="text-emerald-400 hover:underline flex items-center">
               Audit Logs <ArrowUpRight className="w-3 h-3 ml-0.5" />
             </Link>
           </div>
@@ -103,30 +105,28 @@ export const DashboardPage: React.FC = () => {
 
       {/* Infrastructure Note */}
       <Card>
-        <CardHeader title="Frontend Foundation Status" subtitle="Reusable React Contexts, Theme System, & Service Client" />
+        <CardHeader title="Next.js 15 App Router Foundation" subtitle="Pure Server & Client Components Architecture" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 space-y-1">
-            <p className="font-semibold text-indigo-400">Auth & Tenant Context</p>
+            <p className="font-semibold text-indigo-400">Next.js App Router</p>
             <p className="text-slate-400">
-              JWT auto-refresh interceptors, multi-tenant organization switching, and role-based permissions.
+              Native file-based routing (`app/layout.tsx`, `page.tsx`, `loading.tsx`, `error.tsx`).
             </p>
           </div>
           <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 space-y-1">
-            <p className="font-semibold text-purple-400">Design System & Theme</p>
+            <p className="font-semibold text-purple-400">Axios API Rewrites</p>
             <p className="text-slate-400">
-              Custom CSS tokens, Glassmorphism panels, dark/light theme switching, and responsive navigation.
+              API requests proxied via `next.config.ts` rewrite rules directly to `http://localhost:4000/api/v1`.
             </p>
           </div>
           <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 space-y-1">
-            <p className="font-semibold text-emerald-400">API Service Layer</p>
+            <p className="font-semibold text-emerald-400">Clean Architecture</p>
             <p className="text-slate-400">
-              Structured service clients for Auth, Tickets, PRs, Collaboration, Audit Logs, AI Digest, and Notifications.
+              Preserved all services, contexts, providers, design tokens, and components with 0 Vite dependencies.
             </p>
           </div>
         </div>
       </Card>
     </div>
   );
-};
-
-export default DashboardPage;
+}
