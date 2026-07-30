@@ -35,10 +35,13 @@ enum TicketPriority {
 
 enum PRStatus {
   DRAFT
+  OPEN
   IN_REVIEW
+  CHANGES_REQUESTED
   APPROVED
   REJECTED
   MERGED
+  CLOSED
 }
 
 enum PRReviewStatus {
@@ -98,8 +101,10 @@ model User {
   ticketComments        TicketComment[]
   uploadedAttachments   TicketAttachment[]
   authoredPRs           PullRequest[]    @relation("PRAuthor")
+  mergedPRs             PullRequest[]    @relation("PRMerger")
   prReviews             PRReviewer[]
   prVersionsCreated     PRVersion[]
+  prComments            PRComment[]
   sharedResourcesTarget SharedResource[] @relation("TargetUser")
   sharedResourcesBy     SharedResource[] @relation("SharedBy")
   auditLogs             AuditLog[]
@@ -123,6 +128,7 @@ model Organization {
   tickets          Ticket[]
   comments         TicketComment[]
   pullRequests     PullRequest[]
+  prComments       PRComment[]
   featureFlags     TenantFeatureFlag[]
   requestedConns   OrgConnection[]      @relation("RequesterOrg")
   targetConns      OrgConnection[]      @relation("TargetOrg")
@@ -256,9 +262,14 @@ model PullRequest {
   authorId             String       @map("author_id") @db.Uuid
   title                String       @db.VarChar(255)
   description          String       @db.Text
+  sourceBranch         String?      @default("main") @map("source_branch") @db.VarChar(255)
+  targetBranch         String?      @default("main") @map("target_branch") @db.VarChar(255)
   status               PRStatus     @default(DRAFT)
+  labels               Json?        @default("[]") @db.JsonB
   requiresNApprovals   Int          @default(2) @map("requires_n_approvals")
   currentVersionNumber Int          @default(1) @map("current_version_number")
+  mergedById           String?      @map("merged_by_id") @db.Uuid
+  mergedAt             DateTime?    @map("merged_at") @db.Timestamptz
   githubPrNumber       Int?         @map("github_pr_number")
   githubRepoName       String?      @map("github_repo_name") @db.VarChar(255)
   createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz
@@ -267,8 +278,10 @@ model PullRequest {
 
   org                  Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
   author               User         @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  mergedBy             User?        @relation("PRMerger", fields: [mergedById], references: [id], onDelete: SetNull)
   reviewers            PRReviewer[]
   versions             PRVersion[]
+  comments             PRComment[]
 
   @@unique([orgId, prNumber])
   @@index([orgId, status])
@@ -308,6 +321,24 @@ model PRVersion {
   @@unique([prId, versionNumber])
   @@index([prId, versionNumber])
   @@map("pr_versions")
+}
+
+model PRComment {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prId        String       @map("pr_id") @db.Uuid
+  authorId    String       @map("author_id") @db.Uuid
+  authorOrgId String       @map("author_org_id") @db.Uuid
+  content     String       @db.Text
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime?    @map("deleted_at") @db.Timestamptz
+
+  pr          PullRequest  @relation(fields: [prId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  authorOrg   Organization @relation(fields: [authorOrgId], references: [id], onDelete: Restrict)
+
+  @@index([prId, createdAt])
+  @@map("pr_comments")
 }
 
 model OrgConnection {
