@@ -42,4 +42,7 @@ declare module 'lucide-react' {
   export const Share2: React.ComponentType<any>;
   export const CheckCheck: React.ComponentType<any>;
   export const Trash2: React.ComponentType<any>;
+  export const Flag: React.ComponentType<any>;
+  export const ToggleLeft: React.ComponentType<any>;
+  export const ToggleRight: React.ComponentType<any>;
 }
