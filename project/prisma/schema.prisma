@@ -387,21 +387,24 @@ model SharedResource {
 }
 
 model AuditLog {
-  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  timestamp    DateTime     @default(now()) @db.Timestamptz
-  actorId      String       @map("actor_id") @db.Uuid
-  actorEmail   String       @map("actor_email") @db.VarChar(255)
-  orgId        String       @map("org_id") @db.Uuid
-  actionType   String       @map("action_type") @db.VarChar(100)
-  resourceType String       @map("resource_type") @db.VarChar(50)
-  resourceId   String       @map("resource_id") @db.Uuid
-  changeset    Json?        @db.JsonB
-  ipAddress    String?      @map("ip_address") @db.VarChar(45)
-  userAgent    String?      @map("user_agent") @db.Text
-  previousHash String?      @map("previous_hash") @db.VarChar(64)
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  timestamp     DateTime     @default(now()) @db.Timestamptz
+  actorId       String       @map("actor_id") @db.Uuid
+  actorEmail    String       @map("actor_email") @db.VarChar(255)
+  orgId         String       @map("org_id") @db.Uuid
+  actionType    String       @map("action_type") @db.VarChar(100)
+  module        String?      @default("SYSTEM") @db.VarChar(50)
+  resourceType  String       @map("resource_type") @db.VarChar(50)
+  resourceId    String       @map("resource_id") @db.Uuid
+  changeset     Json?        @db.JsonB
+  ipAddress     String?      @map("ip_address") @db.VarChar(45)
+  userAgent     String?      @map("user_agent") @db.Text
+  correlationId String?      @map("correlation_id") @db.VarChar(100)
+  previousHash  String?      @map("previous_hash") @db.VarChar(64)
+  currentHash   String?      @map("current_hash") @db.VarChar(64)
 
-  actor        User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
-  org          Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
+  actor         User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
 
   @@index([orgId, timestamp])
   @@index([actorId, timestamp])

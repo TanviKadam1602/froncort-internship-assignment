@@ -70,6 +70,7 @@ apiV1Router.use('/prs', prsRouter);
 apiV1Router.use('/cross-org', crossOrgRouter);
 apiV1Router.use('/collaboration', crossOrgRouter);
 apiV1Router.use('/audit-logs', auditRouter);
+apiV1Router.use('/audit', auditRouter);
 apiV1Router.use('/ai', aiDigestRouter);
 apiV1Router.use('/notifications', notificationsRouter);
 
