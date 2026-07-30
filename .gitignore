@@ -16,3 +16,31 @@ Thumbs.db
 
 # VS Code
 .vscode/settings.json
+
+# Dependencies
+node_modules/
+project/node_modules/
+frontend/node_modules/
+
+# Build outputs
+project/dist/
+frontend/.next/
+frontend/out/
+
+# Environment files
+.env
+*.env
+project/.env
+frontend/.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

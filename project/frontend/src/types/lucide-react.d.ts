@@ -1,0 +1,18 @@
+declare module 'lucide-react' {
+  import React from 'react';
+  export const LayoutDashboard: React.ComponentType<any>;
+  export const Ticket: React.ComponentType<any>;
+  export const GitPullRequest: React.ComponentType<any>;
+  export const Network: React.ComponentType<any>;
+  export const ShieldCheck: React.ComponentType<any>;
+  export const Sparkles: React.ComponentType<any>;
+  export const Bell: React.ComponentType<any>;
+  export const Sun: React.ComponentType<any>;
+  export const Moon: React.ComponentType<any>;
+  export const LogOut: React.ComponentType<any>;
+  export const Building2: React.ComponentType<any>;
+  export const Menu: React.ComponentType<any>;
+  export const X: React.ComponentType<any>;
+  export const ChevronDown: React.ComponentType<any>;
+  export const ArrowUpRight: React.ComponentType<any>;
+}
