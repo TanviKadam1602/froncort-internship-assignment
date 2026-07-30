@@ -1,0 +1,402 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------
+
+enum OrgRole {
+  ORG_ADMIN
+  SUPPORT_AGENT
+  REVIEWER_APPROVER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PRStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  MERGED
+}
+
+enum PRReviewStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  REVOKED
+}
+
+enum ResourceType {
+  TICKET
+  PULL_REQUEST
+}
+
+enum SharePermission {
+  READ_COMMENT
+}
+
+enum NotificationType {
+  DIGEST_READY
+  PR_REVIEW_REQUESTED
+  TICKET_ASSIGNED
+  CROSS_ORG_SHARE_RECEIVED
+}
+
+enum DigestInterval {
+  DAILY
+  HOURLY
+}
+
+// ------------------------------------------------------
+// MODELS
+// ------------------------------------------------------
+
+model User {
+  id                    String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String           @unique @db.VarChar(255)
+  passwordHash          String           @map("password_hash") @db.VarChar(255)
+  fullName              String           @map("full_name") @db.VarChar(255)
+  avatarUrl             String?          @map("avatar_url") @db.Text
+  isPlatformSuperAdmin  Boolean          @default(false) @map("is_platform_super_admin")
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt             DateTime?        @map("deleted_at") @db.Timestamptz
+
+  memberships           OrgMember[]
+  sessions              UserSession[]
+  authoredTickets       Ticket[]         @relation("TicketAuthor")
+  assignedTickets       Ticket[]         @relation("TicketAssignee")
+  ticketComments        TicketComment[]
+  uploadedAttachments   TicketAttachment[]
+  authoredPRs           PullRequest[]    @relation("PRAuthor")
+  prReviews             PRReviewer[]
+  prVersionsCreated     PRVersion[]
+  sharedResourcesTarget SharedResource[] @relation("TargetUser")
+  sharedResourcesBy     SharedResource[] @relation("SharedBy")
+  auditLogs             AuditLog[]
+  aiDigests             AIDigest[]
+  notifications         Notification[]
+
+  @@map("users")
+}
+
+model Organization {
+  id               String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String               @db.VarChar(255)
+  slug             String               @unique @db.VarChar(100)
+  domain           String?              @db.VarChar(255)
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt        DateTime?            @map("deleted_at") @db.Timestamptz
+
+  memberships      OrgMember[]
+  sessions         UserSession[]
+  tickets          Ticket[]
+  comments         TicketComment[]
+  pullRequests     PullRequest[]
+  featureFlags     TenantFeatureFlag[]
+  requestedConns   OrgConnection[]      @relation("RequesterOrg")
+  targetConns      OrgConnection[]      @relation("TargetOrg")
+  sourceShares     SharedResource[]     @relation("SourceOrg")
+  targetShares     SharedResource[]     @relation("TargetOrg")
+  auditLogs        AuditLog[]
+  aiDigests        AIDigest[]
+  notifications    Notification[]
+
+  @@map("organizations")
+}
+
+model OrgMember {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  orgId     String       @map("org_id") @db.Uuid
+  role      OrgRole      @default(SUPPORT_AGENT)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+  @@index([orgId, role])
+  @@map("org_memberships")
+}
+
+model UserSession {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String       @map("user_id") @db.Uuid
+  activeOrgId      String       @map("active_org_id") @db.Uuid
+  refreshTokenHash String       @map("refresh_token_hash") @db.VarChar(255)
+  userAgent        String?      @map("user_agent") @db.Text
+  ipAddress        String?      @map("ip_address") @db.VarChar(45)
+  expiresAt        DateTime     @map("expires_at") @db.Timestamptz
+  revokedAt        DateTime?    @map("revoked_at") @db.Timestamptz
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz
+
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeOrg        Organization @relation(fields: [activeOrgId], references: [id], onDelete: Cascade)
+
+  @@index([userId, activeOrgId])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+model Ticket {
+  id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketNumber Int                @map("ticket_number")
+  orgId        String             @map("org_id") @db.Uuid
+  authorId     String             @map("author_id") @db.Uuid
+  assigneeId   String?            @map("assignee_id") @db.Uuid
+  title        String             @db.VarChar(255)
+  description  String             @db.Text
+  status       TicketStatus       @default(OPEN)
+  priority     TicketPriority     @default(MEDIUM)
+  dueDate      DateTime?          @map("due_date") @db.Timestamptz
+  tags         Json?              @default("[]") @db.JsonB
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt    DateTime?          @map("deleted_at") @db.Timestamptz
+
+  org          Organization       @relation(fields: [orgId], references: [id], onDelete: Restrict)
+  author       User               @relation("TicketAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  assignee     User?              @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  comments     TicketComment[]
+  attachments  TicketAttachment[]
+
+  @@unique([orgId, ticketNumber])
+  @@index([orgId, status])
+  @@index([assigneeId, status])
+  @@map("tickets")
+}
+
+model TicketComment {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId    String       @map("ticket_id") @db.Uuid
+  authorId    String       @map("author_id") @db.Uuid
+  authorOrgId String       @map("author_org_id") @db.Uuid
+  content     String       @db.Text
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt   DateTime?    @map("deleted_at") @db.Timestamptz
+
+  ticket      Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  authorOrg   Organization @relation(fields: [authorOrgId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_comments")
+}
+
+model TicketAttachment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ticketId   String   @map("ticket_id") @db.Uuid
+  uploaderId String   @map("uploader_id") @db.Uuid
+  fileName   String   @map("file_name") @db.VarChar(255)
+  fileUrl    String   @map("file_url") @db.Text
+  fileSize   Int      @map("file_size")
+  mimeType   String   @map("mime_type") @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploader   User     @relation(fields: [uploaderId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId])
+  @@map("ticket_attachments")
+}
+
+model TenantFeatureFlag {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orgId       String       @map("org_id") @db.Uuid
+  flagKey     String       @map("flag_key") @db.VarChar(100)
+  isEnabled   Boolean      @default(false) @map("is_enabled")
+  description String?      @db.Text
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, flagKey])
+  @@map("tenant_feature_flags")
+}
+
+model PullRequest {
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prNumber             Int          @map("pr_number")
+  orgId                String       @map("org_id") @db.Uuid
+  authorId             String       @map("author_id") @db.Uuid
+  title                String       @db.VarChar(255)
+  description          String       @db.Text
+  status               PRStatus     @default(DRAFT)
+  requiresNApprovals   Int          @default(2) @map("requires_n_approvals")
+  currentVersionNumber Int          @default(1) @map("current_version_number")
+  githubPrNumber       Int?         @map("github_pr_number")
+  githubRepoName       String?      @map("github_repo_name") @db.VarChar(255)
+  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt            DateTime?    @map("deleted_at") @db.Timestamptz
+
+  org                  Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
+  author               User         @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  reviewers            PRReviewer[]
+  versions             PRVersion[]
+
+  @@unique([orgId, prNumber])
+  @@index([orgId, status])
+  @@map("pull_requests")
+}
+
+model PRReviewer {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prId       String         @map("pr_id") @db.Uuid
+  reviewerId String         @map("reviewer_id") @db.Uuid
+  status     PRReviewStatus @default(PENDING)
+  comment    String?        @db.Text
+  updatedAt  DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  pr         PullRequest    @relation(fields: [prId], references: [id], onDelete: Cascade)
+  reviewer   User           @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([prId, reviewerId])
+  @@index([prId, status])
+  @@map("pr_reviewers")
+}
+
+model PRVersion {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  prId            String      @map("pr_id") @db.Uuid
+  versionNumber   Int         @map("version_number")
+  title           String      @db.VarChar(255)
+  description     String      @db.Text
+  diffContent     String      @map("diff_content") @db.Text
+  snapshotPayload Json?       @map("snapshot_payload") @db.JsonB
+  createdById     String      @map("created_by_id") @db.Uuid
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  pr              PullRequest @relation(fields: [prId], references: [id], onDelete: Cascade)
+  createdBy       User        @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([prId, versionNumber])
+  @@index([prId, versionNumber])
+  @@map("pr_versions")
+}
+
+model OrgConnection {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requesterOrgId  String           @map("requester_org_id") @db.Uuid
+  targetOrgId     String           @map("target_org_id") @db.Uuid
+  status          ConnectionStatus @default(PENDING)
+  requestedAt     DateTime         @default(now()) @map("requested_at") @db.Timestamptz
+  respondedAt     DateTime?        @map("responded_at") @db.Timestamptz
+
+  requesterOrg    Organization     @relation("RequesterOrg", fields: [requesterOrgId], references: [id], onDelete: Cascade)
+  targetOrg       Organization     @relation("TargetOrg", fields: [targetOrgId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterOrgId, targetOrgId])
+  @@index([requesterOrgId, targetOrgId, status])
+  @@map("org_connections")
+}
+
+model SharedResource {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sourceOrgId  String          @map("source_org_id") @db.Uuid
+  targetOrgId  String          @map("target_org_id") @db.Uuid
+  resourceType ResourceType    @map("resource_type")
+  resourceId   String          @map("resource_id") @db.Uuid
+  targetUserId String?         @map("target_user_id") @db.Uuid
+  permission   SharePermission @default(READ_COMMENT)
+  sharedById   String          @map("shared_by_id") @db.Uuid
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
+
+  sourceOrg    Organization    @relation("SourceOrg", fields: [sourceOrgId], references: [id], onDelete: Cascade)
+  targetOrg    Organization    @relation("TargetOrg", fields: [targetOrgId], references: [id], onDelete: Cascade)
+  targetUser   User?           @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  sharedBy     User            @relation("SharedBy", fields: [sharedById], references: [id], onDelete: Restrict)
+
+  @@unique([sourceOrgId, targetOrgId, resourceType, resourceId])
+  @@index([targetOrgId, resourceType, resourceId])
+  @@map("shared_resources")
+}
+
+model AuditLog {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  timestamp    DateTime     @default(now()) @db.Timestamptz
+  actorId      String       @map("actor_id") @db.Uuid
+  actorEmail   String       @map("actor_email") @db.VarChar(255)
+  orgId        String       @map("org_id") @db.Uuid
+  actionType   String       @map("action_type") @db.VarChar(100)
+  resourceType String       @map("resource_type") @db.VarChar(50)
+  resourceId   String       @map("resource_id") @db.Uuid
+  changeset    Json?        @db.JsonB
+  ipAddress    String?      @map("ip_address") @db.VarChar(45)
+  userAgent    String?      @map("user_agent") @db.Text
+  previousHash String?      @map("previous_hash") @db.VarChar(64)
+
+  actor        User         @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Restrict)
+
+  @@index([orgId, timestamp])
+  @@index([actorId, timestamp])
+  @@index([actionType, timestamp])
+  @@map("audit_logs")
+}
+
+model AIDigest {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  orgId           String         @map("org_id") @db.Uuid
+  summaryText     String         @map("summary_text") @db.Text
+  metricsSnapshot Json           @map("metrics_snapshot") @db.JsonB
+  intervalType    DigestInterval @default(DAILY) @map("interval_type")
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org             Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("ai_digests")
+}
+
+model Notification {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  orgId     String           @map("org_id") @db.Uuid
+  type      NotificationType
+  title     String           @db.VarChar(255)
+  message   String           @db.Text
+  linkUrl   String?          @map("link_url") @db.Text
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org       Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
