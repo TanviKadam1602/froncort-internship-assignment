@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import { ApiError } from '../core/utils/api-error';
 
 /**
- * Tenant Context & BOLA Query Guard Middleware Placeholder
- * Enforces active organization scoping and cross-org access validation.
- * Implementation will be added in Phase 2/3.
+ * Tenant Context Middleware
+ * Verifies that the authenticated request carries a valid active organization context.
  */
-export const tenantContextMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-  // Placeholder skeleton for tenant context enforcement
+export const tenantContextMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user || !req.user.activeOrgId) {
+    return next(ApiError.forbidden('Active organization context is required to access this resource'));
+  }
   return next();
 };
