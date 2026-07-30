@@ -445,3 +445,17 @@ model Notification {
   @@index([userId, isRead, createdAt])
   @@map("notifications")
 }
+
+model NotificationPreference {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String   @map("user_id") @db.Uuid
+  orgId                 String   @map("org_id") @db.Uuid
+  emailNotifications    Boolean  @default(true) @map("email_notifications")
+  inAppNotifications    Boolean  @default(true) @map("in_app_notifications")
+  digestNotifications   Boolean  @default(true) @map("digest_notifications")
+  prReviewNotifications Boolean  @default(true) @map("pr_review_notifications")
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@unique([userId, orgId])
+  @@map("notification_preferences")
+}

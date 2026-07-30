@@ -1,4 +1,26 @@
 import { z } from 'zod';
+import { NotificationType } from '@prisma/client';
+
+export const createNotificationSchema = z.object({
+  body: z.object({
+    userId: z.string().uuid('userId must be a valid UUID').optional(),
+    type: z.nativeEnum(NotificationType, {
+      errorMap: () => ({ message: 'Invalid notification type' }),
+    }),
+    title: z.string().min(1).max(255),
+    message: z.string().min(1),
+    linkUrl: z.string().url().optional(),
+  }),
+});
+
+export const updatePreferencesSchema = z.object({
+  body: z.object({
+    emailNotifications: z.boolean().optional(),
+    inAppNotifications: z.boolean().optional(),
+    digestNotifications: z.boolean().optional(),
+    prReviewNotifications: z.boolean().optional(),
+  }),
+});
 
 export const getNotificationByIdSchema = z.object({
   params: z.object({
@@ -13,3 +35,6 @@ export const listNotificationsQuerySchema = z.object({
     isRead: z.string().optional().transform((val) => (val !== undefined ? val === 'true' : undefined)),
   }),
 });
+
+export type CreateNotificationInputDTO = z.infer<typeof createNotificationSchema>['body'];
+export type UpdatePreferencesInputDTO = z.infer<typeof updatePreferencesSchema>['body'];
