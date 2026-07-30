@@ -2,76 +2,58 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15-alpine
-    container_name: unified_postgres
+    image: postgres:16-alpine
+    container_name: unified-workspace-postgres
     restart: always
     environment:
-      POSTGRES_DB: unified_workspace
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: unified_workspace
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d unified_workspace"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
-    container_name: unified_redis
+    container_name: unified-workspace-redis
     restart: always
     ports:
       - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
-  api:
+  backend:
     build:
       context: .
-      dockerfile: docker/Dockerfile.api
-    container_name: unified_api
+      dockerfile: Dockerfile
+    container_name: unified-workspace-backend
     restart: always
     ports:
       - "4000:4000"
     environment:
-      - NODE_ENV=production
-      - PORT=4000
-      - DATABASE_URL=postgresql://postgres:postgrespassword@postgres:5432/unified_workspace?schema=public
-      - REDIS_URL=redis://redis:6379
-      - JWT_ACCESS_SECRET=docker_production_access_secret_min_32_chars
-      - JWT_REFRESH_SECRET=docker_production_refresh_secret_min_32_chars
-      - JWT_ACCESS_EXPIRATION=15m
-      - JWT_REFRESH_EXPIRATION=7d
-      - AI_PROVIDER=openai
-      - CORS_ORIGIN=http://localhost:3000
+      PORT: 4000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/unified_workspace?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: super-secret-access-key-production-change-me
+      JWT_REFRESH_SECRET: super-secret-refresh-key-production-change-me
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
 
-  worker:
+  frontend:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.worker
-    container_name: unified_worker
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: unified-workspace-frontend
     restart: always
+    ports:
+      - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgrespassword@postgres:5432/unified_workspace?schema=public
-      - REDIS_URL=redis://redis:6379
-      - AI_PROVIDER=openai
+      NODE_ENV: production
+      PORT: 3000
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - backend
 
 volumes:
-  pgdata:
+  postgres_data:
