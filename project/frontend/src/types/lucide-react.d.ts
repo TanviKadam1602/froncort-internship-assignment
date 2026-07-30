@@ -25,4 +25,21 @@ declare module 'lucide-react' {
   export const Shield: React.ComponentType<any>;
   export const Key: React.ComponentType<any>;
   export const Globe: React.ComponentType<any>;
+  export const RefreshCw: React.ComponentType<any>;
+  export const Clock: React.ComponentType<any>;
+  export const Plus: React.ComponentType<any>;
+  export const Search: React.ComponentType<any>;
+  export const Filter: React.ComponentType<any>;
+  export const MessageSquare: React.ComponentType<any>;
+  export const Send: React.ComponentType<any>;
+  export const ArrowLeft: React.ComponentType<any>;
+  export const CheckCircle2: React.ComponentType<any>;
+  export const CheckCircle: React.ComponentType<any>;
+  export const XCircle: React.ComponentType<any>;
+  export const FileCode: React.ComponentType<any>;
+  export const GitBranch: React.ComponentType<any>;
+  export const Download: React.ComponentType<any>;
+  export const Share2: React.ComponentType<any>;
+  export const CheckCheck: React.ComponentType<any>;
+  export const Trash2: React.ComponentType<any>;
 }

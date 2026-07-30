@@ -44,3 +44,15 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Next.js
+.next/
+project/frontend/.next/
+
+# Dependencies
+**/node_modules/
+
+# Build outputs
+dist/
+.next/
+node_modules/
