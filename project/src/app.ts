@@ -68,6 +68,7 @@ apiV1Router.use('/auth', identityRouter);
 apiV1Router.use('/tickets', ticketsRouter);
 apiV1Router.use('/prs', prsRouter);
 apiV1Router.use('/cross-org', crossOrgRouter);
+apiV1Router.use('/collaboration', crossOrgRouter);
 apiV1Router.use('/audit-logs', auditRouter);
 apiV1Router.use('/ai', aiDigestRouter);
 apiV1Router.use('/notifications', notificationsRouter);

@@ -55,15 +55,23 @@ enum ConnectionStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
+  DISCONNECTED
   REVOKED
 }
 
 enum ResourceType {
   TICKET
   PULL_REQUEST
+  DOCUMENT
+  ATTACHMENT
 }
 
 enum SharePermission {
+  VIEW
+  COMMENT
+  EDIT
+  ADMIN
   READ_COMMENT
 }
 
@@ -364,7 +372,7 @@ model SharedResource {
   resourceType ResourceType    @map("resource_type")
   resourceId   String          @map("resource_id") @db.Uuid
   targetUserId String?         @map("target_user_id") @db.Uuid
-  permission   SharePermission @default(READ_COMMENT)
+  permission   SharePermission @default(VIEW)
   sharedById   String          @map("shared_by_id") @db.Uuid
   createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
 
