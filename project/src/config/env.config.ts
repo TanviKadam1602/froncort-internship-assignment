@@ -20,6 +20,9 @@ const envSchema = z.object({
   AI_PROVIDER: z.enum(['openai', 'gemini']).default('openai'),
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  AI_MODEL: z.string().default('gpt-4o-mini'),
+  AI_MAX_TOKENS: z.string().transform((val) => parseInt(val, 10)).default('2000'),
+  AI_TEMPERATURE: z.string().transform((val) => parseFloat(val)).default('0.7'),
 
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 });
