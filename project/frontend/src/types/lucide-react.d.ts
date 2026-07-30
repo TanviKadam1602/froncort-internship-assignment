@@ -16,4 +16,13 @@ declare module 'lucide-react' {
   export const ChevronDown: React.ComponentType<any>;
   export const ArrowUpRight: React.ComponentType<any>;
   export const AlertTriangle: React.ComponentType<any>;
+  export const AlertCircle: React.ComponentType<any>;
+  export const Lock: React.ComponentType<any>;
+  export const Mail: React.ComponentType<any>;
+  export const User: React.ComponentType<any>;
+  export const Users: React.ComponentType<any>;
+  export const UserPlus: React.ComponentType<any>;
+  export const Shield: React.ComponentType<any>;
+  export const Key: React.ComponentType<any>;
+  export const Globe: React.ComponentType<any>;
 }
